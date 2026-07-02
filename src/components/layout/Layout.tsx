@@ -11,6 +11,7 @@ const navItems = [
   { to: '/mock', label: 'Mock Exam' },
   { to: '/mistakes', label: 'Mistakes' },
   { to: '/readiness', label: 'Readiness' },
+  { to: '/review', label: 'Review' },
 ];
 
 export function Layout() {

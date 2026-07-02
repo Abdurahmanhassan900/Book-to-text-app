@@ -8,6 +8,7 @@ import { MistakeLog } from './pages/MistakeLog';
 import { MockAssessment } from './pages/MockAssessment';
 import { QuestionBank } from './pages/QuestionBank';
 import { ReadinessReport } from './pages/ReadinessReport';
+import { ReviewMode } from './pages/ReviewMode';
 import { SevenDayPlan } from './pages/SevenDayPlan';
 import { SpeakingPractice } from './pages/SpeakingPractice';
 import { TopicDetail } from './pages/TopicDetail';
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="mock" element={<MockAssessment />} />
           <Route path="mistakes" element={<MistakeLog />} />
           <Route path="readiness" element={<ReadinessReport />} />
+          <Route path="review" element={<ReviewMode />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

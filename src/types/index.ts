@@ -194,6 +194,23 @@ export interface MockAttempt {
   componentBreakdown: Record<DMRECSection, number>;
 }
 
+export interface MockConfig {
+  id: string;
+  title: string;
+  description: string;
+  timeLimitMinutes: number;
+  questionIds?: string[];
+  topicMix?: { topicId: TopicId; count: number }[];
+  difficultyFilter?: Difficulty[];
+}
+
+export interface ReviewRecommendation {
+  topicId: TopicId;
+  reason: string;
+  priority: 'high' | 'medium' | 'low';
+  actions: { label: string; route: string }[];
+}
+
 export interface MistakeEntry {
   id: string;
   createdAt: string;
