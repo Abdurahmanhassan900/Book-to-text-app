@@ -11,9 +11,9 @@ import {
   getStrongestTopics,
   getWeakestTopics,
 } from '../utils/scoring';
-import { getDayCompletionPercent, getOverallCompletionPercent } from '../utils/storage';
+import { getDayCompletionPercent, getOverallCompletionPercent, resetProgress } from '../utils/storage';
 export function Dashboard() {
-  const { progress, changeDay } = useProgress();
+  const { progress, changeDay, setProgress } = useProgress();
   const todayPlan = getDailyPlan(progress.currentDay) ?? dailyPlans[0];
   const metrics = calculateReadiness(progress);
   const overallCompletion = getOverallCompletionPercent(progress, dailyPlans);
@@ -30,6 +30,16 @@ export function Dashboard() {
           ) / progress.speakingAttempts.length,
         )
       : 0;
+
+  const handleReset = () => {
+    if (
+      window.confirm(
+        'Reset all progress, mocks, quizzes, and mistakes? This cannot be undone.',
+      )
+    ) {
+      setProgress(resetProgress());
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -196,6 +206,19 @@ export function Dashboard() {
           <em className="text-accent">&quot;I&apos;m not completely sure, but I believe…&quot;</em>{' '}
           then deliver D-M-B-R-E-C and state your uncertainty honestly.
         </p>
+      </Card>
+
+      <Card title="Data">
+        <p className="mb-3 text-sm text-muted">
+          Progress is stored locally in your browser. Reset to start the 7-day plan from scratch.
+        </p>
+        <button
+          type="button"
+          onClick={handleReset}
+          className="rounded border border-danger/50 px-4 py-2 text-sm text-danger hover:bg-danger/10"
+        >
+          Reset all progress
+        </button>
       </Card>
     </div>
   );

@@ -53,15 +53,22 @@ const DEFAULT_TASKS = [
 
 function buildTasks(
   day: number,
+  topics: TopicId[],
   descriptions: Record<string, string>,
 ): DailyPlan['tasks'] {
+  const primaryTopic = topics[0];
   return DEFAULT_TASKS.map((task) => ({
     id: `day${day}-${task.type}`,
     type: task.type,
     title: task.title,
     description: descriptions[task.type] ?? task.title,
     durationMinutes: task.durationMinutes,
-    route: task.route,
+    route:
+      task.type === 'daily-quiz'
+        ? `/plan/quiz/${day}`
+        : task.type === 'concept-lesson' || task.type === 'mechanism-walkthrough'
+          ? `/topics/${primaryTopic}`
+          : task.route,
   }));
 }
 
@@ -77,7 +84,7 @@ export const dailyPlans: DailyPlan[] = [
       'Explain session keys and forward secrecy',
       'Complete timed TLS questions',
     ],
-    tasks: buildTasks(1, {
+    tasks: buildTasks(1, ['tls-cryptography'], {
       'concept-lesson': 'Study TLS purpose, versions, and the handshake overview.',
       'mechanism-walkthrough': 'Walk through ClientHello → ServerHello → cert validation → key exchange → encrypted data.',
       flashcards: 'Drill TLS terms: cipher suites, CAs, forward secrecy, MITM.',
@@ -100,7 +107,7 @@ export const dailyPlans: DailyPlan[] = [
       'Explain ORM safety and raw-query risks',
       'Complete timed database-security questions',
     ],
-    tasks: buildTasks(2, {
+    tasks: buildTasks(2, ['sql-injection'], {
       'concept-lesson': 'Learn how untrusted input alters SQL query logic.',
       'mechanism-walkthrough': 'Trace string concatenation vs prepared statements with bound parameters.',
       flashcards: 'Drill injection types, least privilege, and error exposure.',
@@ -123,7 +130,7 @@ export const dailyPlans: DailyPlan[] = [
       'Explain token theft, expiration, rotation, and revocation',
       'Complete timed authentication questions',
     ],
-    tasks: buildTasks(3, {
+    tasks: buildTasks(3, ['jwt-authentication'], {
       'concept-lesson': 'Learn auth vs authorization, JWT parts, and stateless tradeoffs.',
       'mechanism-walkthrough': 'Trace token creation, transmission, verification, and expiration handling.',
       flashcards: 'Drill HttpOnly cookies, algorithm confusion, and revocation limits.',
@@ -146,7 +153,7 @@ export const dailyPlans: DailyPlan[] = [
       'Understand dependency, secret, container, and IaC scanning',
       'Complete timed DevSecOps questions',
     ],
-    tasks: buildTasks(4, {
+    tasks: buildTasks(4, ['sast-dast'], {
       'concept-lesson': 'Learn white-box vs black-box testing and when each runs.',
       'mechanism-walkthrough': 'Map SAST, DAST, SCA, secret, container, and IaC scans in CI/CD.',
       flashcards: 'Drill what each scan type detects and misses.',
@@ -169,7 +176,7 @@ export const dailyPlans: DailyPlan[] = [
       'Discuss security-usability tradeoffs',
       'Complete timed scenario questions',
     ],
-    tasks: buildTasks(5, {
+    tasks: buildTasks(5, ['api-rate-limiting', 'defensive-security'], {
       'concept-lesson': 'Learn rate limiting purpose and login abuse patterns.',
       'mechanism-walkthrough': 'Compare fixed window, sliding window, and token bucket.',
       flashcards: 'Drill MFA, password hashing, and account lockout tradeoffs.',
@@ -192,7 +199,7 @@ export const dailyPlans: DailyPlan[] = [
       'Review weak topics from Days 1–5',
       'Complete a mixed mock assessment',
     ],
-    tasks: buildTasks(6, {
+    tasks: buildTasks(6, ['mobile-pinning', 'cia-triad'], {
       'concept-lesson': 'Learn pinning vs normal TLS validation and CIA controls.',
       'mechanism-walkthrough': 'Trace pinning checks, backup pins, and rotation failures.',
       flashcards: 'Drill CIA examples and pinning operational risks.',
@@ -224,7 +231,19 @@ export const dailyPlans: DailyPlan[] = [
       'Practice recovery when unsure',
       'Reach a consistent score of at least 85%',
     ],
-    tasks: buildTasks(7, {
+    tasks: buildTasks(
+      7,
+      [
+        'tls-cryptography',
+        'sql-injection',
+        'jwt-authentication',
+        'sast-dast',
+        'api-rate-limiting',
+        'defensive-security',
+        'mobile-pinning',
+        'cia-triad',
+      ],
+      {
       'concept-lesson': 'Light review of weakest topics from readiness report.',
       'mechanism-walkthrough': 'Rehearse fallback structure: "I\'m not completely sure, but I believe…"',
       flashcards: 'Rapid recall across all curriculum areas.',

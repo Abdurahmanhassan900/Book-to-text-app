@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RubricFeedback } from '../components/practice/RubricFeedback';
 import { Badge, TopicBadge } from '../components/ui/Badge';
@@ -38,8 +38,10 @@ export function MockAssessment() {
   const [timedOut, setTimedOut] = useState(false);
   const [attempt, setAttempt] = useState<MockAttempt | null>(null);
   const [expandedResult, setExpandedResult] = useState<string | null>(null);
+  const submittedRef = useRef(false);
 
   const startMock = (cfg: MockConfig) => {
+    submittedRef.current = false;
     const qs = resolveMockQuestions(cfg);
     setConfig(cfg);
     setQuestions(qs);
@@ -54,7 +56,8 @@ export function MockAssessment() {
   };
 
   const submitMock = useCallback(() => {
-    if (!config) return;
+    if (!config || submittedRef.current) return;
+    submittedRef.current = true;
 
     const mockAttempt = buildMockAttempt(
       config,
