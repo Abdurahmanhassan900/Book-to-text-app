@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import { AnswerBuilder } from './pages/AnswerBuilder';
+import { DailyQuiz } from './pages/DailyQuiz';
 import { Dashboard } from './pages/Dashboard';
 import { Flashcards } from './pages/Flashcards';
 import { MistakeLog } from './pages/MistakeLog';
@@ -19,6 +20,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="plan" element={<SevenDayPlan />} />
+          <Route path="plan/quiz/:day" element={<DailyQuiz />} />
           <Route path="topics" element={<TopicLibrary />} />
           <Route path="topics/:id" element={<TopicDetail />} />
           <Route path="practice/builder" element={<AnswerBuilder />} />

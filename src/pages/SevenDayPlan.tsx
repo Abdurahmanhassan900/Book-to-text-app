@@ -121,7 +121,13 @@ export function SevenDayPlan() {
                     </span>
                   </div>
                   <Link
-                    to={`/topics${plan.topics[0] ? '' : ''}`}
+                    to={`/plan/quiz/${plan.day}`}
+                    className="rounded border border-border px-3 py-1.5 text-xs hover:bg-surface-overlay"
+                  >
+                    Take daily quiz
+                  </Link>
+                  <Link
+                    to={`/topics/${plan.topics[0]}`}
                     className="rounded border border-border px-3 py-1.5 text-xs hover:bg-surface-overlay"
                   >
                     Review topics
