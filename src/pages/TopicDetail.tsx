@@ -2,13 +2,15 @@ import { Link, useParams } from 'react-router-dom';
 import { DMRECChecklist } from '../components/shared/DMRECChecklist';
 import { TopicBadge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
-import { getTopic } from '../data/topics';
+import { getLessonsByTopic } from '../data/lessons';
+import { getTopic, topics } from '../data/topics';
 import { TOPIC_LABELS, type TopicId } from '../types';
 
 export function TopicDetail() {
   const { id } = useParams<{ id: string }>();
   const topicId = id as TopicId;
   const topic = getTopic(topicId);
+  const lessons = topic ? getLessonsByTopic(topic.id) : [];
 
   if (!topic) {
     return (
@@ -24,6 +26,8 @@ export function TopicDetail() {
     );
   }
 
+  const related = topics.filter((t) => topic.relatedTopicIds.includes(t.id));
+
   return (
     <div className="space-y-6">
       <header>
@@ -33,12 +37,37 @@ export function TopicDetail() {
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <h2 className="text-2xl font-bold">{topic.title}</h2>
           <TopicBadge topicId={topic.id} />
+          <span className="text-sm text-muted">Day {topic.day}</span>
         </div>
       </header>
 
       <Card title="D-M-B-R-E-C framework">
         <DMRECChecklist />
       </Card>
+
+      {lessons.length > 0 && (
+        <Card title="Lessons">
+          <ul className="space-y-4">
+            {lessons.map((lesson) => (
+              <li key={lesson.id} className="rounded border border-border bg-surface p-3">
+                <h3 className="font-medium">{lesson.title}</h3>
+                <p className="mt-1 text-sm text-muted">{lesson.summary}</p>
+                <ul className="mt-2 list-inside list-disc text-sm text-slate-300">
+                  {lesson.content.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-xs font-medium text-accent">Practice aloud:</p>
+                <ul className="list-inside list-disc text-xs text-muted">
+                  {lesson.practicePrompts.map((p) => (
+                    <li key={p}>{p}</li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="Definition">
@@ -97,7 +126,23 @@ export function TopicDetail() {
         </ul>
       </Card>
 
-      <div className="flex gap-3">
+      {related.length > 0 && (
+        <Card title="Related topics">
+          <div className="flex flex-wrap gap-2">
+            {related.map((t) => (
+              <Link
+                key={t.id}
+                to={`/topics/${t.id}`}
+                className="text-sm text-accent hover:underline"
+              >
+                {t.title}
+              </Link>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      <div className="flex flex-wrap gap-3">
         <Link
           to="/practice/builder"
           className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-muted"
@@ -109,6 +154,18 @@ export function TopicDetail() {
           className="rounded-md border border-border px-4 py-2 text-sm hover:bg-surface-raised"
         >
           Timed speaking
+        </Link>
+        <Link
+          to="/practice/flashcards"
+          className="rounded-md border border-border px-4 py-2 text-sm hover:bg-surface-raised"
+        >
+          Flashcards
+        </Link>
+        <Link
+          to="/questions"
+          className="rounded-md border border-border px-4 py-2 text-sm hover:bg-surface-raised"
+        >
+          Question bank
         </Link>
       </div>
     </div>

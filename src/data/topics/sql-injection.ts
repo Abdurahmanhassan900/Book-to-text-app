@@ -10,7 +10,7 @@ export const sqlInjectionTopic: Topic = {
   technicalDefinition:
     'SQL injection is an input-validation failure where attacker-controlled data alters the structure or logic of a SQL statement because the application treats user input as executable SQL syntax rather than bound data values.',
   mechanism: [
-    'Application builds SQL by concatenating strings: `"SELECT * FROM users WHERE email = '" + email + "'"`',
+    'Application builds SQL by concatenating strings instead of using bound parameters (unsafe email-in-WHERE pattern).',
     'Attacker supplies input containing SQL metacharacters or clauses (e.g., quote termination, OR 1=1, UNION).',
     'Database parser interprets injected syntax as part of the query logic.',
     'Outcomes: authentication bypass, data exfiltration, modification, deletion, or in some stacks, extended exploitation.',
@@ -46,7 +46,7 @@ export const sqlInjectionTopic: Topic = {
     risk:
       'Raw SQL in ORMs, dynamic identifiers, and over-privileged DB accounts can still allow abuse. Sanitization is fragile compared to binding.',
     example:
-      'Unsafe: `"WHERE email = '" + email + "'"` → Safer: prepared statement with `?` placeholder for email in a Node.js or Java JDBC application.',
+      'Unsafe string concatenation in WHERE clause vs safer prepared statement with ? placeholder for email.',
     conclusion:
       'The core fix is separation of SQL code from user data through parameterization, supported by least privilege and safe error handling.',
   },

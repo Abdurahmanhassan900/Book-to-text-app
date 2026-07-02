@@ -89,7 +89,7 @@ export const sqlQuestions: PracticeQuestion[] = [
       definition:
         'Parameterized queries (prepared statements) send a fixed SQL template with placeholders to the database and supply user input as bound values, so the database never parses input as SQL syntax.',
       mechanism:
-        'Instead of `"SELECT * FROM users WHERE email = '" + email + "'"`, the developer uses `SELECT * FROM users WHERE email = ?` and passes email via `stmt.setString(1, email)`. The driver transmits the query structure and parameters separately. The SQL parser compiles the template first; bound values are typed data (string, int) that cannot alter WHERE, UNION, or comment structure. Even if email contains quotes or SQL keywords, they are treated as literal string content.',
+        "Instead of concatenating email into SELECT WHERE email = ..., the developer uses SELECT with ? placeholder and passes email via stmt.setString(1, email). The driver transmits query structure and parameters separately. The parser compiles the template first; bound values are typed data that cannot alter WHERE, UNION, or comment structure.",
       benefit:
         'Eliminates the primary injection vector for value positions in queries—authentication, search filters, and inserts become safe when consistently parameterized.',
       risk:
@@ -143,7 +143,7 @@ export const sqlQuestions: PracticeQuestion[] = [
       risk:
         'Teams assume ORM = safe and skip review of the 5% raw queries where incidents happen. Complex reporting queries and DBA-written stored procs are frequent weak points.',
       example:
-        'A Rails app uses ActiveRecord safely everywhere except one admin report calling `ActiveRecord::Base.connection.execute("SELECT * FROM logs WHERE msg LIKE '%#{params[:q]}%'")`—injectable.',
+        "A Rails app uses ActiveRecord safely except one admin report with execute and string-interpolated LIKE clause from params—injectable.",
       conclusion:
         'Treat ORM as parameterized-by-default, not injection-proof—audit raw SQL, dynamic identifiers, and stored procedure construction.',
     },
@@ -295,13 +295,13 @@ export const sqlQuestions: PracticeQuestion[] = [
       definition:
         'String concatenation builds SQL by joining literal code fragments with untrusted input, giving the database a single statement where attacker data can be interpreted as executable SQL syntax.',
       mechanism:
-        'Languages like `"SELECT ... WHERE name = '" + name + "'"` produce one string sent to the DB. If name contains a single quote, the string literal boundary shifts. Attackers add operators, subqueries, or comments because the parser processes the entire blob uniformly—there is no boundary between trusted template and untrusted value unless the API enforces it via binding.',
+        "Languages concatenate literal SQL with untrusted input into one string sent to the DB. If input contains a quote, the string literal boundary shifts. Attackers add operators or comments because the parser processes the entire blob uniformly—no boundary between template and value unless binding enforces it.",
       benefit:
         'Recognizing concatenation as the anti-pattern motivates prepared statements, query builders with bindings, and static analysis rules that flag string SQL.',
       risk:
         'Even partial concatenation in an otherwise safe app creates one exploitable endpoint. Log injection and ORM escape hatches share the same root cause.',
       example:
-        'Node.js anti-pattern: `` db.query(`SELECT * FROM items WHERE sku = '${req.query.sku}'`) `` — one metacharacter breaks logic.',
+        "Node.js anti-pattern: db.query with template string embedding req.query.sku directly—one metacharacter breaks logic.",
       conclusion:
         'Never concatenate untrusted input into SQL—use bound parameters so data never shares a syntactic channel with code.',
     },
@@ -517,7 +517,7 @@ export const sqlQuestions: PracticeQuestion[] = [
       risk:
         'String formatting column names from raw user input is equivalent to concatenation. Some ORM `order()` methods pass user strings directly—same risk.',
       example:
-        'API `?sort=price` → server sets `orderColumn = ALLOWED_SORTS[sort] ?? 'created_at'` → `SELECT ... ORDER BY ${orderColumn} LIMIT ?` with bound limit.',
+        "API sort=price maps through ALLOWED_SORTS allowlist to orderColumn, then SELECT ORDER BY allowlisted column with bound LIMIT.",
       conclusion:
         'Parameterize values everywhere; allowlist identifiers when SQL grammar requires dynamic structure.',
     },
@@ -565,7 +565,7 @@ export const sqlQuestions: PracticeQuestion[] = [
       definition:
         'Stored procedures are only as safe as their implementation—dynamic SQL constructed via string concatenation inside a procedure is vulnerable to the same injection flaws as application-level code.',
       mechanism:
-        'A procedure that does `SET @sql = 'SELECT * FROM t WHERE c = ''' + @input + ''''; EXEC(@sql)` is injectable through @input. Similarly, PostgreSQL `EXECUTE format(...)` without proper quoting or SQL Server `sp_executesql` with concatenated fragments fail. Safe procedures use bound parameters within static SQL or parameterized `sp_executesql` with `@params`. Merely moving unsafe concatenation from app to database does not help.',
+        "A procedure that builds dynamic SQL via string concatenation of input is injectable. Safe procedures use bound parameters within static SQL or parameterized sp_executesql. Moving unsafe concatenation from app to database does not help.",
       benefit:
         'Well-written static procedures with bound parameters can centralize query logic and reduce duplicated concatenation in apps.',
       risk:
@@ -676,7 +676,7 @@ export const sqlQuestions: PracticeQuestion[] = [
       definition:
         'Second-order SQL injection occurs when malicious input is safely stored once but later retrieved and embedded unsafely into another SQL statement because the application treats database-stored data as trusted.',
       mechanism:
-        'In first-order injection, the attack payload in an HTTP request is concatenated immediately into a query. In second-order, the attacker registers a username containing SQL metacharacters that is inserted via parameterized query into a users table. Later, an admin reporting tool builds `"... WHERE owner = '" + row.username + "'"` dynamically. The stored payload executes in the admin context with higher privileges. The initial insert was safe; the later misuse was not.',
+        "In first-order injection, payload in an HTTP request is concatenated immediately. In second-order, attacker stores metacharacters via safe parameterized insert; later an admin tool builds dynamic SQL with concatenated username from DB. Stored payload executes with higher privileges—the initial insert was safe; later misuse was not.",
       benefit:
         'Awareness drives consistent parameterization for all queries—including those reading from your own database—and avoids "trusted internal data" assumptions.',
       risk:
@@ -698,7 +698,7 @@ export const sqlQuestions: PracticeQuestion[] = [
     category: 'troubleshooting',
     difficulty: 'intermediate',
     prompt:
-      'A code review finds `db.raw("SELECT * FROM reports WHERE region = '" + region + "'")` inside an otherwise ORM-based codebase. What is wrong, and how should it be fixed?',
+      'A code review finds db.raw with string-concatenated region in SELECT WHERE inside an otherwise ORM-based codebase. What is wrong, and how should it be fixed?',
     rubric: createRubric({
       requiredConcepts: [
         'Raw SQL with concatenation bypasses ORM parameterization',

